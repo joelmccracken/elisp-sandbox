@@ -1,0 +1,10 @@
+most of this is coming from the code for erbot: git://git.sv.gnu.org/erbot.git
+
+
+
+concerns: 
+
+bad fn calls?
+infinite loops?
+any other kind of DOS?
+
