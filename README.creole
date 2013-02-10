@@ -1,0 +1,46 @@
+= Sandbox: run Elisp in a jail =
+
+Erbot runs the #emacs robot. He has a jail inside him for running
+arbitary elisp safely. 
+
+The code is here: git://git.sv.gnu.org/erbot.git
+
+Also on GitHub [[https://github.com/sigma/erbot|here]].
+
+
+== How to use it ==
+
+First install sandbox and then:
+
+{{{
+(sandbox '(setq x 100))
+}}}
+
+//=>//
+
+{{{
+(emacs-sandbox-setq emacs-sandbox-x 100)
+}}}
+
+and:
+
+{{{
+(sandbox '(defun nic-test-2 () 100))
+}}}
+
+//=>//
+
+{{{
+(emacs-sandbox-defun emacs-sandbox-nic-test-2 nil 100)
+}}}
+
+== Gaps ==
+
+We need a way to evaluate stuff coming out of the sandbox.
+
+== Potential problems ==
+
+bad fn calls?
+infinite loops?
+any other kind of DOS?
+
