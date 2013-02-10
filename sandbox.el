@@ -1,15 +1,16 @@
-;;; erblisp.el --- 
-;; Time-stamp: <2007-11-23 11:30:08 deego>
+;;; sandbox.el --- Evaluate EmacsLisp expressions in a sandbox
+
 ;; Copyright (C) 2002 D. Goel, 2012 Joel McCracken
+;; Author: Joel McCracken <mccracken.joel@gmail.com>, D. Goel <deego@gnufans.org>
+;; Version: 0.0.1
+;; URL: https://github.com/joelmccracken/emacs_sandbox
+;; Keywords: lisp
+
+;; Time-stamp: <2007-11-23 11:30:08 deego>
 ;; Emacs Lisp Archive entry
 ;; Filename: erblisp.el
 ;; Package: erblisp
-;; Author: Joel McCracken <mccracken.joel@gmail.com>, D. Goel <deego@gnufans.org>
-;; Version: 0.0DEV
-;; URL:  
- 
 
- 
 ;; This file is NOT (yet) part of GNU Emacs.
  
 ;; This is free software; you can redistribute it and/or modify
@@ -155,3 +156,6 @@ etc, things that are not defined, but passed on here in any case."
       nil)))
 
 (provide 'sandbox)
+
+
+;;; sandbox.el ends here
