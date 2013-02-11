@@ -53,8 +53,6 @@ We WON'T do this by default since this could lead to exploits if you
 \(setq &rest (shell-command \"rm -rf /\")) in your .emacs."
   )
 
-
-
 ;; main entry point is sandbox
 ;; sandbox takes an expression and makes sure it is okay to evaluate
 
@@ -186,10 +184,15 @@ redefunned, return true. "
                             '(sit-for 0)
                             body)))))))))
 
-(defun sandbox-eval (form)
-  (flet (((intern (concat sandbox-prefix "while")) (cond &rest body) (sandbox-while cond body))
-         ((intern (concat sandbox-prefix "defun")) (fcn args &rest body ) (sandbox-defun fcn args body)))
-    (eval (sandbox form))))
+(defun sandbox-eval (form &optional prefix)
+  (unless (or (stringp prefix) (eq nil prefix))
+    (error "Prefix should be a string"))
+  (let ((sandbox-prefix (or prefix sandbox-prefix))
+        (sandbox-defun-symbol (intern (concat sandbox-prefix "defun")))
+        (sandbox-while-symbol (intern (concat sandbox-prefix "while"))))
+    (flet ((sandbox-defun-symbol (fcn args &rest body ) (sandbox-defun fcn args body))
+           (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
+      (eval (sandbox form)))))
 
 (defvar sandbox-max-list-length 100)
 

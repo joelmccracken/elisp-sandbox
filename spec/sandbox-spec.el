@@ -60,6 +60,14 @@
      (let ((i 0))
        (sandbox-while t (incf i))))))
 
+(describe "sandbox-eval"
+  (it "will eval defuns in a different namespace"
+    ;; todo: make a test scenario that will actually pass
+    (should (eq 3
+                (sandbox-eval
+                 '(progn (defun testfn (one two) (+ one two))
+                         (testfn 1 2)))))))
+
 ;; actual spec tests
 (describe "sandbox"
   (it "forbids the user from executing the bad stuff"
