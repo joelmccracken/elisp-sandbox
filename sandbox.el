@@ -165,30 +165,17 @@ redefunned, return true. "
                (stringp (first body)))
       (setq docp t))
     (sandbox-readonly-check sandbox-fcn)
-    (if docp
-        (cons 'defun
-              (cons sandbox-fcn
-                    (cons args
-                          (cons
-                           (first body)
-                           (cons
-                            `(sandbox--check-args ,@args)
-                            (cons
-                             '(sit-for 0)
-                             (cdr body)))))))
-      (cons 'defun
-            (cons sandbox-fcn
-                  (cons args
-                        (cons
-                         (first body)
-                         (cons
-                          `(sandbox--check-args ,@args)
-                          (cons
-                           '(sit-for 0)
-                           (cdr body))))))))))
+    (let ((is-interactive-form (equal '(interactive) (first body))))
+      (if docp
+          ;; puts the docstring in front
+          `(defun sandbox-fcn args ,(first body) (sandbox--check-args ,@args) (sit-for 0) ,(cdr body))
+        `(defun sandbox-fcn args (sandbox--check-args ,@args) (sit-for 0) body)))))
+
+(defun make-sandboxed-form)
 
 (defun sandbox-eval (form)
-  (flet (((intern (concat sandbox-prefix "while")) (cond &rest body) (sandbox-while cond body)))
+  (flet (((intern (concat sandbox-prefix "while")) (cond &rest body) (sandbox-while cond body))
+         ((intern (concat sandbox-prefix "defun")) (fcn args &rest body ) (sandbox-defun fcn args body)))
     (eval (sandbox form))))
 
 (defvar sandbox-max-list-length 100)

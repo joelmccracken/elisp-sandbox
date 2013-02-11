@@ -44,7 +44,15 @@
     (should-not (sandbox--safe-length-args-p '((2 3) 2) 0 2))))
 
 (describe "sandbox-defun"
-  (it "makes "))
+  (it "makes functions in the sandboxed namespace"
+    (progn
+      (sandbox-defun testfn (one two) (+ one two))
+      (should (eq 3 (emacs-sandbox-testfn 1 2)))))
+  (it "handles functions with docstrings too"
+    (progn
+      (sandbox-defun testfn (one two) "test function" (+ one two))
+      (should (eq 3 (emacs-sandbox-testfn 1 2))))))
+
 
 (describe "sandbox-while"
   (it "wont allow infinite looping"
@@ -75,7 +83,13 @@
     (should-error
      (eval (sandbox '(while t
                        (throw 'omg-should-not-even-be-allowed-to-run!!!)))))
-    :type 'void-function))
+    :type 'void-function)
+
+  (it "wont loop forever with sandbox-eval"
+    (should-error
+     (sandbox-eval (sandbox '(while t (setq what-doing "looping")))))))
+
+
 
 (defun emacs-sandbox-message (val))
 
