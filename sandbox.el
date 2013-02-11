@@ -167,11 +167,24 @@ redefunned, return true. "
     (sandbox-readonly-check sandbox-fcn)
     (let ((is-interactive-form (equal '(interactive) (first body))))
       (if docp
-          ;; puts the docstring in front
-          `(defun sandbox-fcn args ,(first body) (sandbox--check-args ,@args) (sit-for 0) ,(cdr body))
-        `(defun sandbox-fcn args (sandbox--check-args ,@args) (sit-for 0) body)))))
-
-(defun make-sandboxed-form)
+          (cons 'defun
+                (cons sandbox-fcn
+                      (cons args
+                            (cons
+                             (first body)
+                             (cons
+                              `(sandbox--check-args ,@args)
+                              (cons
+                               '(sit-for 0)
+                               (cdr body)))))))
+        (cons 'defun
+              (cons sandbox-fcn
+                    (cons args
+                          (cons
+                           `(sandbox--check-args ,@args)
+                           (cons
+                            '(sit-for 0)
+                            body)))))))))
 
 (defun sandbox-eval (form)
   (flet (((intern (concat sandbox-prefix "while")) (cond &rest body) (sandbox-while cond body))
