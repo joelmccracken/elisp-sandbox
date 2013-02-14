@@ -60,13 +60,29 @@
      (let ((i 0))
        (sandbox-while t (incf i))))))
 
+(describe "sandbox-def-unbound-fns"
+  (it "defines sandboxed functions if they aren't defined yet"
+    (progn
+      (fmakunbound 'emacs-sandbox-progn)
+      (fmakunbound 'emacs-sandbox-defun)
+      (fmakunbound 'emacs-sandbox-+)
+      (sandbox-def-unbound-fns
+       '(emacs-sandbox-progn
+         (emacs-sandbox-defun emacs-sandbox-testsum (emacs-sandbox-one emacs-sandbox-two) (emacs-sandbox-+ emacs-sandbox-one emacs-sandbox-two))
+         (emacs-sandbox-testsum 1 2)))
+      (should (eq t (and (fboundp 'emacs-sandbox-progn)
+                         (fboundp 'emacs-sandbox-defun)
+                         (fboundp 'emacs-sandbox-+)))))))
+
 (describe "sandbox-eval"
   (it "will eval defuns in a different namespace"
-    ;; todo: make a test scenario that will actually pass
-    (should (eq 3
-                (sandbox-eval
-                 '(progn (defun testfn (one two) (+ one two))
-                         (testfn 1 2)))))))
+      (should (eq 3
+                  (progn
+                    (let ((expression '(progn
+                                         (defun testfn (one two) (+ one two))
+                                         (testfn 1 2))))
+                      (sandbox-def-unbound-fns (sandbox expression))
+                      (sandbox-eval expression)))))))
 
 ;; actual spec tests
 (describe "sandbox"

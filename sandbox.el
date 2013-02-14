@@ -184,6 +184,22 @@ redefunned, return true. "
                             '(sit-for 0)
                             body)))))))))
 
+(defun sandbox-def-unbound-fns (expr &optional prefix)
+  "Defines unbound PREFIX functions in EXPR."
+  (cond ((listp expr)
+         (let* ((prefix (or prefix sandbox-prefix))
+                (function-name (first expr))
+                (function-name-str (symbol-name (first expr)))
+                (remaining-expr (rest expr))
+                (orig-function-name (intern (substring function-name-str (length prefix)))))
+           (if (and (not (fboundp function-name))
+                    (string-match (format "^%s" prefix) function-name-str)
+                    (fboundp orig-function-name))
+               (fset function-name (symbol-function orig-function-name)))
+           (unless (null (rest expr))
+             (mapcar (lambda (expr) (sandbox-def-unbound-fns expr))
+                     (rest expr)))))))
+
 (defun sandbox-eval (form &optional prefix)
   (unless (or (stringp prefix) (eq nil prefix))
     (error "Prefix should be a string"))
