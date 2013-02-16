@@ -72,6 +72,18 @@
          (emacs-sandbox-testsum 1 2)))
       (should (eq t (and (fboundp 'emacs-sandbox-progn)
                          (fboundp 'emacs-sandbox-defun)
+                         (fboundp 'emacs-sandbox-+))))))
+  (it "also has a macro"
+    (progn
+      (fmakunbound 'emacs-sandbox-progn)
+      (fmakunbound 'emacs-sandbox-defun)
+      (fmakunbound 'emacs-sandbox-+)
+      (sandbox-define-unbound-functions
+            (emacs-sandbox-progn
+             (emacs-sandbox-defun emacs-sandbox-testsum (emacs-sandbox-one emacs-sandbox-two) (emacs-sandbox-+ emacs-sandbox-one emacs-sandbox-two))
+             (emacs-sandbox-testsum 1 2)))
+      (should (eq t (and (fboundp 'emacs-sandbox-progn)
+                         (fboundp 'emacs-sandbox-defun)
                          (fboundp 'emacs-sandbox-+)))))))
 
 (describe "sandbox-eval"

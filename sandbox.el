@@ -128,7 +128,7 @@ We WON'T do this by default since this could lead to exploits if you
 
 (defun sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
-redefunned, return true. "
+redefunned, return true."
   (or (member object (list nil t))
       (keywordp object)))
 
@@ -191,7 +191,8 @@ redefunned, return true. "
                 (function-name (first expr))
                 (function-name-str (symbol-name (first expr)))
                 (remaining-expr (rest expr))
-                (orig-function-name (intern (substring function-name-str (length prefix)))))
+                (orig-function-name (if (> (length function-name-str) (length prefix))
+                                        (intern (substring function-name-str (length prefix))))))
            (if (and (not (fboundp function-name))
                     (string-match (format "^%s" prefix) function-name-str)
                     (fboundp orig-function-name))
@@ -199,6 +200,11 @@ redefunned, return true. "
            (unless (null (rest expr))
              (mapcar (lambda (expr) (sandbox-def-unbound-fns expr))
                      (rest expr)))))))
+
+(defmacro sandbox-define-unbound-functions (sexpr)
+  "Define unbound functions in SEXPR, which is a prefixed sandboxed string."
+  (unless (equal 'quote (first sexpr))
+    `(cons 'quote (sandbox-def-unbound-fns ',sexpr))))
 
 (defun sandbox-eval (form &optional prefix)
   (unless (or (stringp prefix) (eq nil prefix))
