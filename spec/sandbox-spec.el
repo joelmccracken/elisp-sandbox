@@ -84,7 +84,18 @@
              (emacs-sandbox-testsum 1 2)))
       (should (eq t (and (fboundp 'emacs-sandbox-progn)
                          (fboundp 'emacs-sandbox-defun)
-                         (fboundp 'emacs-sandbox-+)))))))
+                         (fboundp 'emacs-sandbox-+))))))
+  (it "will use predefined functions if available"
+    (progn
+      (fmakunbound 'emacs-sandbox-defun)
+      (defmacro emacs-sandbox-defun (fcn args &rest body)
+        `(sandbox-defun ,fcn ,args ,body))
+      (sandbox-def-unbound-fns
+       '(emacs-sandbox-progn
+         (emacs-sandbox-defun emacs-sandbox-testsum (emacs-sandbox-one emacs-sandbox-two)
+                              (emacs-sandbox-+ emacs-sandbox-one emacs-sandbox-two))
+        (emacs-sandbox-testsum 1 2)))
+      (should-not (equal #'emacs-sandbox-defun #'defun)))))
 
 (describe "sandbox-eval"
   (it "will eval defuns in a different namespace"
@@ -95,6 +106,24 @@
                                          (testfn 1 2))))
                       (sandbox-def-unbound-fns (sandbox expression))
                       (sandbox-eval expression)))))))
+
+(describe "sandbox-eval-with-bindings"
+  (it "runs stuff coming out of the sandbox"
+    (should (eq 3 (sandbox-eval-with-bindings (progn
+                                                (defun testfn (one two)
+                                                  (+ one two))
+                                                (testfn 1 2))))))
+  (it "should not break out of the sandbox"
+    (progn
+      (sandbox-eval-with-bindings (progn
+                                    (defmacro my-defun (fcn args &rest body)
+                                      `(,(intern "defun") ,fcn ,args ,body))
+                                    (my-defun outside-sandbox ()
+                                              (message "If this test does not pass, I've been defined outside the sandbox")
+                                              t)))
+      (should
+       (and (not (fboundp 'outside-sandbox))
+            (fboundp 'emacs-sandbox-outside-sandbox))))))
 
 ;; actual spec tests
 (describe "sandbox"
@@ -124,11 +153,6 @@
   (it "wont loop forever with sandbox-eval"
     (should-error
      (sandbox-eval (sandbox '(while t (setq what-doing "looping")))))))
-
-
-
-(defun emacs-sandbox-message (val))
-
 
 (describe "user trying to access an outside variable"
   (it "doesnt work"

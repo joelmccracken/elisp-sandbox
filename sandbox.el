@@ -216,6 +216,28 @@ redefunned, return true."
            (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
       (eval (sandbox form)))))
 
+(defmacro sandbox-eval-with-bindings (sexp)
+  "Sandbox SEXP, bind its unbound fns to their originals and eval."
+  `(let ((sandboxed-sexp ,(sandbox sexp)))
+     (sandbox-def-unbound-fns sandboxed-sexp)
+     (eval sandboxed-sexp)))
+
+(defun sandbox-fns (&optional prefix)
+  "Returns symbols for all functions matching PREFIX, defaulting to sandbox-prefix."
+  (let ((prefix (or prefix sandbox-prefix))
+        (sandboxed-fns (list)))
+    (mapatoms (lambda (atom)
+                (if (and (fboundp atom)
+                         (string-match (concat "^" prefix) (symbol-name atom)))
+                    (push atom sandboxed-fns))))
+    sandboxed-fns))
+
+(defun unbind-sandbox-fns (&optional prefix)
+  "Unbinds every sandboxed function."
+  (let ((prefix (or prefix sandbox-prefix))
+        (sb-fns (sandbox-fns)))
+    (mapcar 'fmakunbound sb-fns)))
+
 (defvar sandbox-max-list-length 100)
 
 (defmacro sandbox--check-args (&rest args)
