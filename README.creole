@@ -1,7 +1,7 @@
 = Sandbox: run Elisp in a jail =
 
 Erbot runs the #emacs robot. He has a jail inside him for running
-arbitary elisp safely. 
+arbitary elisp safely.
 
 The code is here: git://git.sv.gnu.org/erbot.git
 
@@ -43,4 +43,11 @@ We need a way to evaluate stuff coming out of the sandbox.
 bad fn calls?
 infinite loops?
 any other kind of DOS?
+
+
+== Development ==
+
+Use the script {{{ bin/clone_erbot.sh }}} to get a local copy of the erbot source for yourself.
+
+Tests are written with el-spec.
 
