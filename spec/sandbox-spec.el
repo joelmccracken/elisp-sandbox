@@ -18,7 +18,6 @@
 (sandbox-test "sandbox--check-args is true for an empty list"
   (should (equal t (sandbox--check-args nil))))
 
-
 (sandbox-test "sandbox--check-args is true for a list with a single symbol"
   (should (equal t (sandbox--check-args '(wtf)))))
 
@@ -28,7 +27,6 @@
 (sandbox-test "sandbox--check-args is false for a list with symbols where one is bound"
   (let ((omg 10))
     (should (sandbox--check-args '(wtf omg)))))
-
 
 (sandbox-test "sandbox--safe-length-args-p is true for a small list"
   (should (sandbox--safe-length-args-p '(1 2 3) 0 100)))
@@ -50,8 +48,6 @@
     (sandbox-defun testfn (one two) "test function" (+ one two))
     (should (eq 3 (emacs-sandbox-testfn 1 2)))))
 
-
-
 (sandbox-test "sandbox-while wont allow infinite looping"
   (should-error
    (let ((i 0))
@@ -59,11 +55,11 @@
 
 (sandbox-test "sandbox-eval will eval defuns in a different namespace"
   ;; todo: make a test scenario that will actually pass
-  (when nil 
     (should (eq 3
                 (sandbox-eval
                  '(progn (defun testfn (one two) (+ one two))
-                         (testfn 1 2)))))))
+                         (testfn 1 2))))))
+
 (sandbox-test "sandbox forbids the user from executing the bad stuff"
   (with-mock2
     (defmock a-sensitive-function ())

@@ -126,6 +126,9 @@ We WON'T do this by default since this could lead to exploits if you
        ,@body)))
 
 
+(defalias 'emacs-sandbox-+ '+)
+
+
 (defun sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
 redefunned, return true. "
@@ -184,15 +187,17 @@ redefunned, return true. "
                             '(sit-for 0)
                             body)))))))))
 
-(defun sandbox-eval (form &optional prefix)
-  (unless (or (stringp prefix) (eq nil prefix))
-    (error "Prefix should be a string"))
-  (let ((sandbox-prefix (or prefix sandbox-prefix))
-        (sandbox-defun-symbol (intern (concat sandbox-prefix "defun")))
-        (sandbox-while-symbol (intern (concat sandbox-prefix "while"))))
-    (flet ((sandbox-defun-symbol (fcn args &rest body ) (sandbox-defun fcn args body))
-           (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
-      (eval (sandbox form)))))
+(when nil
+  ;; unnecessary...
+  (defun sandbox-eval (form &optional prefix)
+    (unless (or (stringp prefix) (eq nil prefix))
+      (error "Prefix should be a string"))
+    (let ((sandbox-prefix (or prefix sandbox-prefix))
+          (sandbox-defun-symbol (intern (concat sandbox-prefix "defun")))
+          (sandbox-while-symbol (intern (concat sandbox-prefix "while"))))
+      (flet ((sandbox-defun-symbol (fcn args &rest body ) (sandbox-defun fcn args body))
+             (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
+        (eval (sandbox form))))))
 
 (defvar sandbox-max-list-length 100)
 
@@ -241,6 +246,100 @@ etc, things that are not defined, but passed on here in any case."
     (if (<= so-far len)
         t
       nil)))
+
+
+(defalias 'emacs-sandbox-progn 'progn)
+
+
+
+
+(defun erbn-readonly-check (sym)
+  (if (get sym 'readonly)
+      (error "The symbol %S can't be redefined or set! It is read-only!"
+	     sym)))
+
+
+(defmacro emacs-sandbox-defun (fcn args &rest body)
+  
+  ;; the given fcn icould be a number or string, in which
+  ;; case sandboxing won't touch it, so we need to override that case.
+  (let ((docp nil))
+    (unless 
+        (and (listp body)
+             (> (length body) 0))
+      (error "Function body should have a length of 1 or more"))
+    (unless (and (symbolp fcn) (not (emacs-sandbox-constant-object-p fcn)))
+      (error "Defun symbols only! :P"))
+    ;; doc string exists, and is followed by more stuff..
+    (when (and (> (length body) 1)
+               (stringp (first body)))
+      (setq docp t))
+    (erbn-readonly-check fcn)
+    ;; not actually sure why 
+    (let ((code-with-sit-for 
+           (if docp
+               (cons 'defun 
+                     (cons fcn 
+                           (cons args 
+                                 (cons 
+                                  (first body)
+                                  (cons
+                                   `(sandbox--check-args ,@args)
+                                   (cons
+                                    '(sit-for 0)
+                                    (cdr body)))))))
+             (cons 'defun 
+                   (cons fcn 
+                         (cons args 
+                               (cons
+                                `(sandbox--check-args ,@args)
+                                (cons 
+                                 '(sit-for 0)
+                                 body))))))
+           
+           
+
+
+           ))
+      (eval code-with-sit-for))
+
+    
+    ;; the following code is disabled
+    ;; atm not supporting any
+    ;; "write sexps to file" feature.
+    ;; 
+    ;; (erbn-write-sexps-to-file
+    ;;  erbn-pf-file
+    ;;  (erbn-create-defun-overwrite
+    ;;   (erbutils-file-sexps erbn-pf-file)
+    ;;   (if docp
+    ;;       (cons 'defun 
+    ;;             (cons fcn 
+    ;;                   (cons args 
+    ;;                         (cons 
+    ;;                          (first body)
+    ;;                          (cons
+    ;;                           `(erblisp-check-args ,@args)
+    ;;                           (cons
+    ;;                            '(sit-for 0)
+    ;;                            (cdr body)))))))
+    ;;     (cons 'defun 
+    ;;           (cons fcn 
+    ;;                 (cons args 
+    ;;                       (cons
+    ;;                        `(erblisp-check-args ,@args)
+    ;;                        (cons 
+    ;;                         '(sit-for 0)
+    ;;                         body))))))
+    ;;   fcn))
+    ;;    (emacs-sandbox-pf-load)
+    `(quote ,fcn)))
+
+(defun emacs-sandbox-constant-object-p (object)
+  "If the object is a symbol like nil or t, a symbol that cannot be
+redefunned, return true. "
+  (or (member object (list nil t))
+      (keywordp object)))
 
 (provide 'sandbox)
 

@@ -1,3 +1,7 @@
+(defun sandbox-run-sandbox-tests ()
+  (interactive)
+  (ert-run-tests-interactively '(tag sandbox)))
+
 
 (defvar sandbox-test-run-on-eval nil "should evaling a test definition run it immediately")
 (setq sandbox-test-run-on-eval nil)
