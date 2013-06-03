@@ -3,13 +3,8 @@
 ;; Copyright (C) 2002 D. Goel, 2012 Joel McCracken
 ;; Author: Joel McCracken <mccracken.joel@gmail.com>, D. Goel <deego@gnufans.org>
 ;; Version: 0.0.1
-;; URL: https://github.com/joelmccracken/emacs_sandbox
+;; URL: https://github.com/joelmccracken/elisp-sandbox
 ;; Keywords: lisp
-
-;; Time-stamp: <2007-11-23 11:30:08 deego>
-;; Emacs Lisp Archive entry
-;; Filename: erblisp.el
-;; Package: erblisp
 
 ;; This file is NOT (yet) part of GNU Emacs.
 
@@ -28,8 +23,6 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-
-
 ;; this file is adapted from the code from erbot. see:
 
 ;; http://www.emacswiki.org/cgi-bin/wiki.pl?ErBot
@@ -37,9 +30,7 @@
 ;; eventually I hope to make it better, but for now
 ;; other projects can use the same sandboxing functionality
 
-
-
-(defvar sandbox-prefix "emacs-sandbox-")
+(defvar sandbox-prefix "elisp-sandbox-")
 (defvar sandbox-allowed-words
   '(nil
     t
@@ -126,7 +117,7 @@ We WON'T do this by default since this could lead to exploits if you
        ,@body)))
 
 
-(defalias 'emacs-sandbox-+ '+)
+(defalias 'elisp-sandbox-+ '+)
 
 
 (defun sandbox-constant-object-p (object)
@@ -248,7 +239,7 @@ etc, things that are not defined, but passed on here in any case."
       nil)))
 
 
-(defalias 'emacs-sandbox-progn 'progn)
+(defalias 'elisp-sandbox-progn 'progn)
 
 
 
@@ -256,86 +247,83 @@ etc, things that are not defined, but passed on here in any case."
 (defun erbn-readonly-check (sym)
   (if (get sym 'readonly)
       (error "The symbol %S can't be redefined or set! It is read-only!"
-	     sym)))
+       sym)))
 
 
-(defmacro emacs-sandbox-defun (fcn args &rest body)
-  
+(defmacro elisp-sandbox-defun (fcn args &rest body)
+
   ;; the given fcn icould be a number or string, in which
   ;; case sandboxing won't touch it, so we need to override that case.
   (let ((docp nil))
-    (unless 
+    (unless
         (and (listp body)
              (> (length body) 0))
       (error "Function body should have a length of 1 or more"))
-    (unless (and (symbolp fcn) (not (emacs-sandbox-constant-object-p fcn)))
+    (unless (and (symbolp fcn) (not (elisp-sandbox-constant-object-p fcn)))
       (error "Defun symbols only! :P"))
     ;; doc string exists, and is followed by more stuff..
     (when (and (> (length body) 1)
                (stringp (first body)))
       (setq docp t))
     (erbn-readonly-check fcn)
-    ;; not actually sure why 
-    (let ((code-with-sit-for 
+    ;; not actually sure why
+    (let ((code-with-sit-for
            (if docp
-               (cons 'defun 
-                     (cons fcn 
-                           (cons args 
-                                 (cons 
+               (cons 'defun
+                     (cons fcn
+                           (cons args
+                                 (cons
                                   (first body)
                                   (cons
                                    `(sandbox--check-args ,@args)
                                    (cons
                                     '(sit-for 0)
                                     (cdr body)))))))
-             (cons 'defun 
-                   (cons fcn 
-                         (cons args 
+             (cons 'defun
+                   (cons fcn
+                         (cons args
                                (cons
                                 `(sandbox--check-args ,@args)
-                                (cons 
+                                (cons
                                  '(sit-for 0)
                                  body))))))
-           
-           
-
 
            ))
       (eval code-with-sit-for))
 
-    
+
     ;; the following code is disabled
     ;; atm not supporting any
     ;; "write sexps to file" feature.
-    ;; 
+    ;;
     ;; (erbn-write-sexps-to-file
     ;;  erbn-pf-file
     ;;  (erbn-create-defun-overwrite
     ;;   (erbutils-file-sexps erbn-pf-file)
     ;;   (if docp
-    ;;       (cons 'defun 
-    ;;             (cons fcn 
-    ;;                   (cons args 
-    ;;                         (cons 
+    ;;       (cons 'defun
+    ;;             (cons fcn
+    ;;                   (cons args
+    ;;                         (cons
     ;;                          (first body)
     ;;                          (cons
     ;;                           `(erblisp-check-args ,@args)
     ;;                           (cons
     ;;                            '(sit-for 0)
     ;;                            (cdr body)))))))
-    ;;     (cons 'defun 
-    ;;           (cons fcn 
-    ;;                 (cons args 
+    ;;     (cons 'defun
+    ;;           (cons fcn
+    ;;                 (cons args
     ;;                       (cons
     ;;                        `(erblisp-check-args ,@args)
-    ;;                        (cons 
+    ;;                        (cons
     ;;                         '(sit-for 0)
     ;;                         body))))))
     ;;   fcn))
-    ;;    (emacs-sandbox-pf-load)
+    ;;    (elisp-sandbox-pf-load)
     `(quote ,fcn)))
 
-(defun emacs-sandbox-constant-object-p (object)
+(defun elisp-sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
 redefunned, return true. "
   (or (member object (list nil t))

@@ -89,14 +89,9 @@
 
 (sandbox-test "user trying to access an outside variable doesnt work"
   (defun emacs-sandbox-message (val))
-  
   (let ((a-secret 'shhhhh))
     (should-error
      (eval (sandbox '(message a-secret)))
      :type 'void-variable)))
 
 
-;;;;;;;;;;;;;;;;
-;; need two types of specs to advance:
-;; the first is examples of
-;;

@@ -1,4 +1,4 @@
-= Sandbox: run Elisp in a jail =
+= Elisp Sandbox: run Elisp in a jail =
 
 Erbot runs the #emacs robot. He has a jail inside him for running
 arbitary elisp safely.
@@ -7,6 +7,7 @@ The code is here: git://git.sv.gnu.org/erbot.git
 
 Also on GitHub [[https://github.com/sigma/erbot|here]].
 
+The goal of this project is to pull take erbot's code and adapt it for general use.
 
 == How to use it ==
 
