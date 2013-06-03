@@ -1,4 +1,4 @@
-;;; sandbox.el --- Evaluate EmacsLisp expressions in a sandbox
+;;; elisp-sandbox.el --- Evaluate EmacsLisp expressions in a sandbox
 
 ;; Copyright (C) 2002 D. Goel, 2012 Joel McCracken
 ;; Author: Joel McCracken <mccracken.joel@gmail.com>, D. Goel <deego@gnufans.org>
@@ -329,7 +329,6 @@ redefunned, return true. "
   (or (member object (list nil t))
       (keywordp object)))
 
-(provide 'sandbox)
+(provide 'elisp-sandbox)
 
-
-;;; sandbox.el ends here
+;;; elisp-sandbox.el ends here
