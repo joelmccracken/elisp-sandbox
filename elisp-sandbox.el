@@ -1,6 +1,6 @@
 ;;; elisp-sandbox.el --- Evaluate EmacsLisp expressions in a sandbox
 
-;; Copyright (C) 2002 D. Goel, 2012 Joel McCracken
+;; Copyright (C) 2002 D. Goel, 2012, 2013 Joel McCracken
 ;; Author: Joel McCracken <mccracken.joel@gmail.com>, D. Goel <deego@gnufans.org>
 ;; Version: 0.0.1
 ;; URL: https://github.com/joelmccracken/elisp-sandbox
@@ -120,6 +120,8 @@ We WON'T do this by default since this could lead to exploits if you
 (defalias 'elisp-sandbox-+ '+)
 
 
+
+
 (defun sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
 redefunned, return true. "
@@ -139,49 +141,26 @@ redefunned, return true. "
                  sexps))
          sexps)))
 
-(defmacro sandbox-defun (fcn args &rest body)
-  ;; the given fcn icould be a number or string, in which
-  ;; case sandboxing won't touch it, so we need to override that case.
-  (let ((docp nil)
-        (sandbox-fcn (cond
-                      ((or (numberp fcn) (stringp fcn)) fcn)
-                      (t (intern (concat sandbox-prefix (symbol-name fcn)))))))
-    (unless
-        (and (listp body)
-             (> (length body) 0))
-      (error "Function body should have a length of 1 or more"))
-    (unless (and (symbolp sandbox-fcn) (not (sandbox-constant-object-p sandbox-fcn)))
-      (error "Defun symbols only! :P"))
-    ;; doc string exists, and is followed by more stuff..
-    (when (and (> (length body) 1)
-               (stringp (first body)))
-      (setq docp t))
-    (sandbox-readonly-check sandbox-fcn)
-    (let ((is-interactive-form (equal '(interactive) (first body))))
-      (if docp
-          (cons 'defun
-                (cons sandbox-fcn
-                      (cons args
-                            (cons
-                             (first body)
-                             (cons
-                              `(sandbox--check-args ,@args)
-                              (cons
-                               '(sit-for 0)
-                               (cdr body)))))))
-        (cons 'defun
-              (cons sandbox-fcn
-                    (cons args
-                          (cons
-                           `(sandbox--check-args ,@args)
-                           (cons
-                            '(sit-for 0)
-                            body)))))))))
+
+
+
+(defun elisp-sandbox-prefix-unless-prefixed (symbol)
+  "ensures that symbol has the given elisp-sandbox prefix.
+If it doesn't, prefix is added."
+  (if (equal 0 (string-match sandbox-prefix (format "%s" symbol)))
+      symbol
+    (make-symbol (concat sandbox-prefix (format "%s" symbol)))))
+
+
+(defun elisp-sandbox-message (&rest args)
+  (apply 'message args))
+
 
 (when nil
   ;; unnecessary...
   (defun sandbox-eval (form &optional prefix)
     (unless (or (stringp prefix) (eq nil prefix))
+
       (error "Prefix should be a string"))
     (let ((sandbox-prefix (or prefix sandbox-prefix))
           (sandbox-defun-symbol (intern (concat sandbox-prefix "defun")))
@@ -189,6 +168,10 @@ redefunned, return true. "
       (flet ((sandbox-defun-symbol (fcn args &rest body ) (sandbox-defun fcn args body))
              (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
         (eval (sandbox form))))))
+
+
+(defun sandbox-eval (form)
+  (eval (sandbox form)))
 
 (defvar sandbox-max-list-length 100)
 
@@ -244,17 +227,19 @@ etc, things that are not defined, but passed on here in any case."
 
 
 
-(defun erbn-readonly-check (sym)
+(defun elisp-sandbox-readonly-check (sym)
   (if (get sym 'readonly)
       (error "The symbol %S can't be redefined or set! It is read-only!"
        sym)))
 
 
 (defmacro elisp-sandbox-defun (fcn args &rest body)
-
   ;; the given fcn icould be a number or string, in which
   ;; case sandboxing won't touch it, so we need to override that case.
-  (let ((docp nil))
+  (let ((docp nil)
+        (fcn (cond
+                      ((or (numberp fcn) (stringp fcn)) fcn)
+                      (t (intern (concat sandbox-prefix (symbol-name fcn)))))))
     (unless
         (and (listp body)
              (> (length body) 0))
@@ -265,7 +250,7 @@ etc, things that are not defined, but passed on here in any case."
     (when (and (> (length body) 1)
                (stringp (first body)))
       (setq docp t))
-    (erbn-readonly-check fcn)
+    (elisp-sandbox-readonly-check fcn)
     ;; not actually sure why
     (let ((code-with-sit-for
            (if docp
@@ -290,38 +275,8 @@ etc, things that are not defined, but passed on here in any case."
 
            ))
       (eval code-with-sit-for))
-
-
-    ;; the following code is disabled
-    ;; atm not supporting any
-    ;; "write sexps to file" feature.
-    ;;
-    ;; (erbn-write-sexps-to-file
-    ;;  erbn-pf-file
-    ;;  (erbn-create-defun-overwrite
-    ;;   (erbutils-file-sexps erbn-pf-file)
-    ;;   (if docp
-    ;;       (cons 'defun
-    ;;             (cons fcn
-    ;;                   (cons args
-    ;;                         (cons
-    ;;                          (first body)
-    ;;                          (cons
-    ;;                           `(erblisp-check-args ,@args)
-    ;;                           (cons
-    ;;                            '(sit-for 0)
-    ;;                            (cdr body)))))))
-    ;;     (cons 'defun
-    ;;           (cons fcn
-    ;;                 (cons args
-    ;;                       (cons
-    ;;                        `(erblisp-check-args ,@args)
-    ;;                        (cons
-    ;;                         '(sit-for 0)
-    ;;                         body))))))
-    ;;   fcn))
-    ;;    (elisp-sandbox-pf-load)
     `(quote ,fcn)))
+
 
 (defun elisp-sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be

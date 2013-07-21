@@ -10,7 +10,7 @@
 
 (require 'el-spec)
 (require 'test-double)
-(require 'sandbox)
+(require 'elisp-sandbox)
 
 (load "./spec-helpers")
 

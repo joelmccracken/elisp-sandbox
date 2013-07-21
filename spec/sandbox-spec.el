@@ -4,7 +4,7 @@
 
 (sandbox-test "sandbox rewrites any function as a function with a prefix"
   (should (equal (sandbox '(hi t))
-                 '(emacs-sandbox-hi t))))
+                 '(elisp-sandbox-hi t))))
 
 (sandbox-test "sandbox allows t, nil, &rest, &optional..."
   (should (equal (sandbox '(t nil &rest &optional))
@@ -38,15 +38,16 @@
   (should (sandbox--safe-length-args-p '((2 3) 2 5 6 7 ) 0 4))
   (should-not (sandbox--safe-length-args-p '((2 3) 2) 0 2)))
 
-(sandbox-test "sandbox-defun makes functions in the sandboxed namespace"
+(sandbox-test "elisp-sandbox-defun makes functions in the sandboxed namespace"
   (progn
-    (sandbox-defun testfn (one two) (+ one two))
-    (should (eq 3 (emacs-sandbox-testfn 1 2)))))
+    (elisp-sandbox-defun testfn (one two) (+ one two))
+    (should (eq 3 (elisp-sandbox-testfn 1 2)))
+    ))
 
 (sandbox-test "sandbox-defun handles functions with docstrings too"
   (progn
-    (sandbox-defun testfn (one two) "test function" (+ one two))
-    (should (eq 3 (emacs-sandbox-testfn 1 2)))))
+    (elisp-sandbox-defun testfn (one two) "test function" (+ one two))
+    (should (eq 3 (elisp-sandbox-testfn 1 2)))))
 
 (sandbox-test "sandbox-while wont allow infinite looping"
   (should-error
@@ -65,16 +66,16 @@
     (defmock a-sensitive-function ())
     (should-error
      (eval (sandbox '(a-sensitive-function)))
-     
+
      :type 'void-function)
     (should (= 0 (el-spec:called-count 'a-sensitive-function)))))
 
 
 (sandbox-test "allows the user to execute the good stuff"
   (with-mock2
-    (defmock emacs-sandbox-not-sensitive ())
+    (defmock elisp-sandbox-not-sensitive ())
     (eval (sandbox '(not-sensitive)))
-    (should (= 1 (el-spec:called-count 'emacs-sandbox-not-sensitive)))))
+    (should (= 1 (el-spec:called-count 'elisp-sandbox-not-sensitive)))))
 
 (sandbox-test "an infinite loop condition cant allow looping, i guess"
   (should-error
@@ -88,7 +89,6 @@
 
 
 (sandbox-test "user trying to access an outside variable doesnt work"
-  (defun emacs-sandbox-message (val))
   (let ((a-secret 'shhhhh))
     (should-error
      (eval (sandbox '(message a-secret)))

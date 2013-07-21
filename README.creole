@@ -52,3 +52,12 @@ Use the script {{{ bin/clone_erbot.sh }}} to get a local copy of the erbot sourc
 
 Tests are written with ert.
 
+== Tests ==
+
+Run the file
+
+{{{
+./test.sh
+}}}
+
+
