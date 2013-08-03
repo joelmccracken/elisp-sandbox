@@ -1,4 +1,4 @@
-= Elisp Sandbox: run Elisp in a jail =
+= Elisp Sandbox: run Emacs Lisp in a jail =
 
 Erbot runs the #emacs robot. He has a jail inside him for running
 arbitary elisp safely.
@@ -7,11 +7,23 @@ The code is here: git://git.sv.gnu.org/erbot.git
 
 Also on GitHub [[https://github.com/sigma/erbot|here]].
 
-The goal of this project is to pull take erbot's code and adapt it for general use.
+The goal of this project is to take erbot's code and adapt it for general use.
+
+It is very much a work in progress. Feel free to help out!
 
 == How to use it ==
 
-First install sandbox and then:
+First load elisp-sandbox.el. It provides a number of functions that support working
+with Emacs Lisp code in a safe way.
+
+The simplest function is {{{elisp-sandbox-eval}}}. Using it will evaluate the code
+in a way that prevents the code from calling any disallowed functions.
+
+== How it Works ==
+
+The elisp sandbox works by prefixing any symbols it receives as input
+before that input is evaluated. That way, the user can only access symbols
+that begin with that prefix. For example,
 
 {{{
 (sandbox '(setq x 100))
@@ -20,7 +32,7 @@ First install sandbox and then:
 //=>//
 
 {{{
-(emacs-sandbox-setq emacs-sandbox-x 100)
+(elisp-sandbox-setq elisp-sandbox-x 100)
 }}}
 
 and:
@@ -32,19 +44,57 @@ and:
 //=>//
 
 {{{
-(emacs-sandbox-defun emacs-sandbox-nic-test-2 nil 100)
+(elisp-sandbox-defun elisp-sandbox-nic-test-2 nil 100)
 }}}
 
-== Gaps ==
+== Programmer API ==
 
-We need a way to evaluate stuff coming out of the sandbox.
+To evaluate unsafe code:
 
-== Potential problems ==
+(elisp-sandbox-eval "")
 
-bad fn calls?
-infinite loops?
-any other kind of DOS?
+Any output is stored as a list of strings in the symbol:
 
+{{{elisp-sandbox-evaluation-output}}}
+
+The return value of the sandbox evaluation is stored in the symbol:
+
+{{{elisp-sandbox-evaluation-results}}}
+
+
+The maximum evaluation "depth" can be configured with the variable:
+
+{{{elisp-sandbox-maximum-evaluation depth}}}
+
+This depth is shared between looping constructs and function constructs.
+
+== Sandbox API ==
+
+Sandbox provides a number of functions and macros that are accessible to untrusted code.
+We make notes where the behavior differs from normal Emacs behavior.
+
+{{{defun}}} -- allows user to define a function. TODO note protections against inf recursion
+
+{{{while}}} -- loops. Guards against overly-deep loops w/ same construct
+
+The following are available as aliases of the standard functions:
+
+{{{setq}}}
+
+
+== Sandbox Errors ==
+
+When code behaves badly, errors can be thrown. we gotta figure out how to handle these well.
+
+== Future ==
+
+* it would be nice to allow changing of prefixes, declaration with diff prefixes, and cleaning up
+  of prefixes. That way a single process can handle different sandboxes.
+
+* still need to figure out which additional functions need to come from erbot
+
+* features to port
+  if, funcall, apply, pi, e, emacs-version
 
 == Development ==
 
@@ -60,4 +110,4 @@ Run the file
 ./test.sh
 }}}
 
-
+Tests can also be run interactively... TODO document this

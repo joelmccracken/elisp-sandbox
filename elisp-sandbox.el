@@ -30,7 +30,7 @@
 ;; eventually I hope to make it better, but for now
 ;; other projects can use the same sandboxing functionality
 
-(defvar sandbox-prefix "elisp-sandbox-")
+(defconst sandbox-prefix "elisp-sandbox-unsafe-env-")
 (defvar sandbox-allowed-words
   '(nil
     t
@@ -47,10 +47,8 @@ We WON'T do this by default since this could lead to exploits if you
 ;; main entry point is sandbox
 ;; sandbox takes an expression and makes sure it is okay to evaluate
 
-;; functions wich start with 'sandbox--' should be considered private
-
-(defun sandbox (expr)
-  "sandboxes an expression so that it doesn't fail"
+(defun elisp-sandbox (expr)
+  "sandboxes an expression to prevent it accessing unwhitelisted functionality"
   (cond
    ;; first condition
    ((null expr) nil)
@@ -97,8 +95,11 @@ We WON'T do this by default since this could lead to exploits if you
    ))
 
 
-;; integrating erbot's sandbox functions
+(defun elisp-sandbox-eval (form)
+  (eval `(progn ,@(elisp-sandbox form))))
 
+
+;; integrating erbot's sandbox functions
 (defvar sandbox-while-ctr 0)
 (defvar sandbox-while-max 10000)
 
@@ -156,23 +157,6 @@ If it doesn't, prefix is added."
   (apply 'message args))
 
 
-(when nil
-  ;; unnecessary...
-  (defun sandbox-eval (form &optional prefix)
-    (unless (or (stringp prefix) (eq nil prefix))
-
-      (error "Prefix should be a string"))
-    (let ((sandbox-prefix (or prefix sandbox-prefix))
-          (sandbox-defun-symbol (intern (concat sandbox-prefix "defun")))
-          (sandbox-while-symbol (intern (concat sandbox-prefix "while"))))
-      (flet ((sandbox-defun-symbol (fcn args &rest body ) (sandbox-defun fcn args body))
-             (sandbox-while-symbol (cond &rest body) (sandbox-while cond body)))
-        (eval (sandbox form))))))
-
-
-(defun sandbox-eval (form)
-  (eval (sandbox form)))
-
 (defvar sandbox-max-list-length 100)
 
 (defmacro sandbox--check-args (&rest args)
@@ -192,9 +176,6 @@ etc, things that are not defined, but passed on here in any case."
                    (symbolp arg)
                    (not (boundp arg))))
        args)))
-
-
-
 
 (defun sandbox--check-args-nascent (&rest args)
   (if (or
@@ -223,8 +204,6 @@ etc, things that are not defined, but passed on here in any case."
 
 
 (defalias 'elisp-sandbox-progn 'progn)
-
-
 
 
 (defun elisp-sandbox-readonly-check (sym)
@@ -283,6 +262,10 @@ etc, things that are not defined, but passed on here in any case."
 redefunned, return true. "
   (or (member object (list nil t))
       (keywordp object)))
+
+
+(defalias 'elisp-sandbox-setf 'setf)
+
 
 (provide 'elisp-sandbox)
 
