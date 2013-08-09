@@ -30,7 +30,10 @@
 ;; eventually I hope to make it better, but for now
 ;; other projects can use the same sandboxing functionality
 
-(defconst sandbox-prefix "elisp-sandbox-unsafe-env-")
+(defconst elisp-sandbox-prefix "elisp-sandbox-unsafe-env-"
+  "The prefix for symbols that are to be exposed to a sandbox
+environment.")
+
 (defvar sandbox-allowed-words
   '(nil
     t
@@ -44,7 +47,7 @@ We WON'T do this by default since this could lead to exploits if you
 \(setq &rest (shell-command \"rm -rf /\")) in your .emacs."
   )
 
-;; main entry point is sandbox
+;; main entry point is elisp-sandbox
 ;; sandbox takes an expression and makes sure it is okay to evaluate
 
 (defun elisp-sandbox (expr)
@@ -64,24 +67,24 @@ We WON'T do this by default since this could lead to exploits if you
           ;; if quoted, it is fine...
           expr)
          (t (cons
-             (if (or (equal 0 (string-match sandbox-prefix (format "%S" fir)))
+             (if (or (equal 0 (string-match elisp-sandbox-prefix (format "%S" fir)))
                      (member fir sandbox-allowed-words))
                  fir
                ;; todo: bind this to its original name
-               (intern (concat sandbox-prefix (format "%S" fir))))
+               (intern (concat elisp-sandbox-prefix (format "%S" fir))))
              (mapcar 'sandbox (cdr expr))))))))
 
    ;; final condition.. --> when the expr is an atom..  It should be a
    ;; a constant..  or an allowed atom.. allowed == prefixed with fs-
    (t (cond
        ((and (symbolp expr)
-             (equal 0 (string-match sandbox-prefix (format "%s" expr))))
+             (equal 0 (string-match elisp-sandbox-prefix (format "%s" expr))))
         expr)
        ((equal expr t) expr)
        ((member expr sandbox-allowed-words) expr)
        ((symbolp expr)
-        ;;(boundp (intern (concat sandbox-prefix (format "%S" expr)))))
-        (intern (concat sandbox-prefix (format "%s" expr))))
+        ;;(boundp (intern (concat elisp-sandbox-prefix (format "%S" expr)))))
+        (intern (concat elisp-sandbox-prefix (format "%s" expr))))
        ;; other symbol
        ;;((symbolp expr) (list 'quote expr))
        ;; a number or string now..
@@ -94,9 +97,12 @@ We WON'T do this by default since this could lead to exploits if you
        (t expr)))
    ))
 
+(defalias 'sandbox 'elisp-sandbox)
+
 
 (defun elisp-sandbox-eval (form)
-  (eval `(progn ,@(elisp-sandbox form))))
+  (setq elisp-sandbox-evaluation-output nil)
+  (eval `(progn ,(elisp-sandbox form))))
 
 
 ;; integrating erbot's sandbox functions
@@ -118,7 +124,9 @@ We WON'T do this by default since this could lead to exploits if you
        ,@body)))
 
 
-(defalias 'elisp-sandbox-+ '+)
+
+
+
 
 
 
@@ -145,18 +153,30 @@ redefunned, return true. "
 
 
 
-(defun elisp-sandbox-prefix-unless-prefixed (symbol)
+(defun elisp-sandbox-prefix-unless-prefixed (symbol &optional do-intern)
   "ensures that symbol has the given elisp-sandbox prefix.
 If it doesn't, prefix is added."
-  (if (equal 0 (string-match sandbox-prefix (format "%s" symbol)))
-      symbol
-    (make-symbol (concat sandbox-prefix (format "%s" symbol)))))
+  (let ((symbol-create-fn
+         (if do-intern
+             (symbol-function 'intern)
+           (symbol-function 'make-symbol))))
+    (if (equal 0 (string-match elisp-sandbox-prefix (format "%s" symbol)))
+        symbol
+      (funcall symbol-create-fn (concat elisp-sandbox-prefix (format "%s" symbol))))))
 
 
-(defun elisp-sandbox-message (&rest args)
-  (apply 'message args))
+(defmacro sandbox-defun (name args &rest body)
+  (declare (indent defun))
+  `(defun ,(intern (concat elisp-sandbox-prefix (symbol-name name)))
+     ,args
+     ,@body))
 
+(defvar elisp-sandbox-evaluation-output nil
+  "List that contains the output from the previous sandbox evaluation")
 
+(sandbox-defun message (msg)
+  (push msg elisp-sandbox-evaluation-output)
+  )
 (defvar sandbox-max-list-length 100)
 
 (defmacro sandbox--check-args (&rest args)
@@ -218,7 +238,7 @@ etc, things that are not defined, but passed on here in any case."
   (let ((docp nil)
         (fcn (cond
                       ((or (numberp fcn) (stringp fcn)) fcn)
-                      (t (intern (concat sandbox-prefix (symbol-name fcn)))))))
+                      (t (intern (concat elisp-sandbox-prefix (symbol-name fcn)))))))
     (unless
         (and (listp body)
              (> (length body) 0))
@@ -266,6 +286,13 @@ redefunned, return true. "
 
 (defalias 'elisp-sandbox-setf 'setf)
 
+
+(defun elisp-sandbox-import-alias (original)
+  "alias a function with env prefix"
+  (defalias (elisp-sandbox-prefix-unless-prefixed original t) original))
+
+(elisp-sandbox-import-alias '+)
+(elisp-sandbox-import-alias 'progn)
 
 (provide 'elisp-sandbox)
 

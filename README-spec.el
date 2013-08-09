@@ -1,4 +1,7 @@
 
+(load-file "./spec/spec-helpers.el")
+(readme-start)
+(readme "
 
 = Elisp Sandbox: run Emacs Lisp in a jail =
 
@@ -29,25 +32,26 @@ The elisp sandbox works by prefixing any symbols it receives as input
 before that input is evaluated. That way, the user can only access symbols
 that begin with that prefix. For example,
 
- {{{ (elisp-sandbox
- '(setq x 100))
- }}}
+")
 
-//=>//
+(sandbox-defexample
+ "a simple example that demonstrates expansion"
+ (elisp-sandbox '(setq x 100))
+ (elisp-sandbox-unsafe-env-setq elisp-sandbox-unsafe-env-x 100))
 
-{{{ (elisp-sandbox-unsafe-env-setq elisp-sandbox-unsafe-env-x 100)
- }}} 
+(readme "
 
 and:
 
- {{{ (elisp-sandbox
- '(defun nic-test-2 nil 100))
- }}}
+")
 
-//=>//
+(sandbox-defexample
+ "a second example that demonstrates expansion with a defun (a more complex form)"
+ (elisp-sandbox '(defun nic-test-2 () 100))
+ (elisp-sandbox-unsafe-env-defun elisp-sandbox-unsafe-env-nic-test-2 nil 100))
 
-{{{ (elisp-sandbox-unsafe-env-defun elisp-sandbox-unsafe-env-nic-test-2 nil 100)
- }}} 
+
+(readme "
 == Programmer API ==
 
 To evaluate unsafe code:
@@ -57,20 +61,21 @@ To evaluate unsafe code:
 Example:
 
 
- {{{ (elisp-sandbox-eval
- '(+ 1 2))
- }}}
+")
 
-//=>//
+(sandbox-defexample
+ "a simple evaluation example"
+ (elisp-sandbox-eval '(+ 1 2))
+ 3)
 
-{{{ 3 }}}  {{{ (elisp-sandbox-eval
- '(message "Hello World!"))
- }}}
 
-//=>//
+(sandbox-defexample
+ "example showing output"
+ (elisp-sandbox-eval '(message "Hello World!"))
+ ("Hello World!")
+  ("Hello World!"))
 
-{{{ ("Hello World!")
- }}} 
+(readme "
 
 
 Any output is stored as a list of strings in the symbol:
@@ -81,7 +86,7 @@ The return value of the sandbox evaluation is stored in the symbol:
 
 {{{elisp-sandbox-evaluation-results}}}
 
-The maximum evaluation "depth" can be configured with the variable:
+The maximum evaluation \"depth\" can be configured with the variable:
 
 {{{(setq elisp-sandbox-maximum-evaluation-depth <depth>)}}}
 
@@ -132,7 +137,13 @@ Run the file
 }}}
 
 Tests can also be run interactively... TODO document this
+")
 
+
+
+
+
+(readme "
 == About This Readme ==
 
 Readme content is automatically generated from the file README-spec.el,
@@ -141,3 +152,11 @@ edit README.creole directly; instead, edit README-spec.el and regenerate
 README.creole.
 
 Each feature is covered more thoroughly in the specs/ directory.
+")
+
+;; illustrating each feature from the readme
+;; examples match headers
+
+
+;; == How to use it ==
+
