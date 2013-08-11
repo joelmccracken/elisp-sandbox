@@ -16,8 +16,6 @@ The goal of this project is to take erbot's code and adapt it for general use.
 
 It is very much a work in progress. Feel free to help out!
 
-
-
 == How to use it ==
 
 First load elisp-sandbox.el. It provides a number of functions that support working
@@ -86,6 +84,22 @@ Any output is stored as a list of strings in the symbol:
 
 
 
+
+(readme "
+
+== Sandbox Internal API ==
+
+Sandbox provides a number of functions and macros that are accessible to untrusted code.
+
+{{{defun}}} -- Defines a function specific to the sandbox environment.
+
+{{{while}}} -- Basic looping. Has a maxium loop depth foncigurable with {{{ sandbox-while-max }}} .
+
+
+")
+
+
+
 (sandbox-defexample
  "shows while looping"
  (elisp-sandbox-eval
@@ -101,6 +115,7 @@ Any output is stored as a list of strings in the symbol:
 
 (readme "
 
+The maximum execution while depth can be configured:
 
 ")
 
@@ -123,22 +138,10 @@ Any output is stored as a list of strings in the symbol:
 
 
 
-
 (readme "
 
-The maximum evaluation \"depth\" can be configured with the variable:
 
-{{{(setq elisp-sandbox-maximum-evaluation-depth <depth>)}}}
 
-This depth is shared between looping constructs and function constructs.
-
-== Sandbox API ==
-
-Sandbox provides a number of functions and macros that are accessible to untrusted code.
-
-{{{defun}}} -- Defines a function specific to the sandbox environment.
-
-{{{while}}} -- Basic looping. Has a maxium loop depth foncigurable with {{{ sandbox-while-max }}} .
 
 {{{message}}} -- method for saving output.
 
