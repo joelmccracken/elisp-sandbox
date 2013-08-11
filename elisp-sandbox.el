@@ -109,7 +109,7 @@ We WON'T do this by default since this could lead to exploits if you
 (defvar sandbox-while-ctr 0)
 (defvar sandbox-while-max 10000)
 
-(defmacro sandbox-while (cond &rest body)
+(defmacro elisp-sandbox-unsafe-env-while (cond &rest body)
   `(let
        ((sandbox-while-ctr 0))
      (while
@@ -122,14 +122,6 @@ We WON'T do this by default since this could lead to exploits if you
        (incf sandbox-while-ctr)
        nil
        ,@body)))
-
-
-
-
-
-
-
-
 
 (defun sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
@@ -292,7 +284,12 @@ redefunned, return true. "
   (defalias (elisp-sandbox-prefix-unless-prefixed original t) original))
 
 (elisp-sandbox-import-alias '+)
+(elisp-sandbox-import-alias '<)
 (elisp-sandbox-import-alias 'progn)
+(elisp-sandbox-import-alias 'setq)
+(elisp-sandbox-import-alias 'let)
+(elisp-sandbox-import-alias 'ignore-errors)
+(elisp-sandbox-import-alias 'if)
 
 (provide 'elisp-sandbox)
 

@@ -69,22 +69,62 @@ Example:
  3)
 
 
+(readme "
+
+Any output is stored as a list of strings in the symbol:
+
+{{{elisp-sandbox-evaluation-output}}}
+
+")
+
+
 (sandbox-defexample
  "example showing output"
  (elisp-sandbox-eval '(message "Hello World!"))
  ("Hello World!")
   ("Hello World!"))
 
+
+
+(sandbox-defexample
+ "shows while looping"
+ (elisp-sandbox-eval
+  '(progn
+     (setq counter 0
+           total 0)
+     (while (< counter 10)
+       (setq total (+ total counter))
+       (setq counter  (+ 1 counter)))
+     total))
+ 45)
+
+
 (readme "
 
 
-Any output is stored as a list of strings in the symbol:
+")
 
-{{{elisp-sandbox-evaluation-output}}}
 
-The return value of the sandbox evaluation is stored in the symbol:
 
-{{{elisp-sandbox-evaluation-results}}}
+(sandbox-defexample
+ "shows looping that would be deeper than allowed"
+ (let ((sandbox-while-max 2))
+   (if (elisp-sandbox-eval
+        '(ignore-errors
+           (setq counter 0
+                 total 0)
+           (while (< counter 10)
+             (setq total (+ total counter))
+             (setq counter  (+ 1 counter)))
+           t))
+       "A non-nil resuld would mean that the while finished and t was returned"
+     "A nil result means an error happend, as expected!"))
+ "A nil result means an error happend, as expected!")
+
+
+
+
+(readme "
 
 The maximum evaluation \"depth\" can be configured with the variable:
 
@@ -95,18 +135,16 @@ This depth is shared between looping constructs and function constructs.
 == Sandbox API ==
 
 Sandbox provides a number of functions and macros that are accessible to untrusted code.
-We make notes where the behavior differs from normal Emacs behavior.
 
-{{{defun}}} -- allows user to define a function. TODO note protections against inf recursion
+{{{defun}}} -- Defines a function specific to the sandbox environment.
 
-{{{while}}} -- loops. Guards against overly-deep loops w/ same construct
+{{{while}}} -- Basic looping. Has a maxium loop depth foncigurable with {{{ sandbox-while-max }}} .
 
 {{{message}}} -- method for saving output.
 
 The following are available as aliases of the standard functions:
 
-{{{setq}}}
-
+{{{setq}}}, {{{<}}}, {{{+}}}, {{{progn}}}, {{{let}}}, {{{ignore-errors}}}, {{{if}}}
 
 == Sandbox Errors ==
 
@@ -120,7 +158,7 @@ When code behaves badly, errors can be thrown. we gotta figure out how to handle
 * still need to figure out which additional functions need to come from erbot
 
 * features to port
-  if, funcall, apply, pi, e, emacs-version
+  funcall, apply, pi, e, emacs-version
 
 == Development ==
 
