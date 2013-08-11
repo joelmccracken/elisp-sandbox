@@ -59,16 +59,20 @@
 (defmacro sandbox-defexample (description raw expected &optional output-should-equal)
   `(progn
      (sandbox-test ,description
-     (let ((elisp-sandbox-evaluation-output nil))
-       (should (equal (eval ',raw)
-                      ',expected))
-       (should (equal elisp-sandbox-evaluation-output
-                      ',output-should-equal))))
-       (readme (format " {{{ %s }}}
+       (let ((elisp-sandbox-evaluation-output nil))
+         (should (equal (eval ',raw)
+                        ',expected))
+         (should (equal elisp-sandbox-evaluation-output
+                        ',output-should-equal))))
+     (readme (format " {{{
+%s
+}}}
 
 //=>//
 
-{{{ %s }}} " (pp ',raw) (pp ',expected)))))
+{{{
+%s
+}}} " (pp ',raw) (pp ',expected)))))
 
 
 
