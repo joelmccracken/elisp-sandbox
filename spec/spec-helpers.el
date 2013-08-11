@@ -64,7 +64,8 @@
                         ',expected))
          (should (equal elisp-sandbox-evaluation-output
                         ',output-should-equal))))
-     (readme (format " {{{
+     (readme (format "
+{{{
 %s
 }}}
 
@@ -72,7 +73,8 @@
 
 {{{
 %s
-}}} " (pp ',raw) (pp ',expected)))))
+}}}
+" (pp ',raw) (pp ',expected)))))
 
 
 

@@ -27,7 +27,8 @@ The elisp sandbox works by prefixing any symbols it receives as input
 before that input is evaluated. That way, the user can only access symbols
 that begin with that prefix. For example,
 
- {{{
+
+{{{
 (elisp-sandbox
  '(setq x 100))
 
@@ -38,11 +39,13 @@ that begin with that prefix. For example,
 {{{
 (elisp-sandbox-unsafe-env-setq elisp-sandbox-unsafe-env-x 100)
 
-}}} 
+}}}
+
 
 and:
 
- {{{
+
+{{{
 (elisp-sandbox
  '(defun nic-test-2 nil 100))
 
@@ -53,7 +56,8 @@ and:
 {{{
 (elisp-sandbox-unsafe-env-defun elisp-sandbox-unsafe-env-nic-test-2 nil 100)
 
-}}} 
+}}}
+
 == Programmer API ==
 
 To evaluate unsafe code:
@@ -63,7 +67,8 @@ To evaluate unsafe code:
 Example:
 
 
- {{{
+
+{{{
 (elisp-sandbox-eval
  '(+ 1 2))
 
@@ -73,13 +78,15 @@ Example:
 
 {{{
 3
-}}} 
+}}}
+
 
 Any output is stored as a list of strings in the symbol:
 
 {{{elisp-sandbox-evaluation-output}}}
 
- {{{
+
+{{{
 (elisp-sandbox-eval
  '(message "Hello World!"))
 
@@ -90,7 +97,8 @@ Any output is stored as a list of strings in the symbol:
 {{{
 ("Hello World!")
 
-}}} 
+}}}
+
 
 == Sandbox Internal API ==
 
@@ -101,7 +109,8 @@ Sandbox provides a number of functions and macros that are accessible to untrust
 {{{while}}} -- Basic looping. Has a maxium loop depth foncigurable with {{{ sandbox-while-max }}} .
 
 
- {{{
+
+{{{
 (elisp-sandbox-eval
  '(progn
     (setq counter 0 total 0)
@@ -119,11 +128,13 @@ Sandbox provides a number of functions and macros that are accessible to untrust
 
 {{{
 45
-}}} 
+}}}
+
 
 The maximum execution while depth can be configured:
 
- {{{
+
+{{{
 (let
     ((sandbox-while-max 2))
   (if
@@ -145,7 +156,8 @@ The maximum execution while depth can be configured:
 
 {{{
 "A nil result means an error happend, as expected!"
-}}} 
+}}}
+
 
 
 
