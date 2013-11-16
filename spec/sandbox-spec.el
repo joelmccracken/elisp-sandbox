@@ -4,7 +4,7 @@
 
 (sandbox-test "sandbox rewrites any function as a function with a prefix"
   (should (equal (sandbox '(hi t))
-                 '(elisp-sandbox-hi t))))
+                 '(elisp-sandbox-unsafe-env-hi t))))
 
 (sandbox-test "sandbox allows t, nil, &rest, &optional..."
   (should (equal (sandbox '(t nil &rest &optional))
@@ -41,13 +41,13 @@
 (sandbox-test "elisp-sandbox-defun makes functions in the sandboxed namespace"
   (progn
     (elisp-sandbox-defun testfn (one two) (+ one two))
-    (should (eq 3 (elisp-sandbox-testfn 1 2)))
+    (should (eq 3 (elisp-sandbox-unsafe-env-testfn 1 2)))
     ))
 
 (sandbox-test "sandbox-defun handles functions with docstrings too"
   (progn
     (elisp-sandbox-defun testfn (one two) "test function" (+ one two))
-    (should (eq 3 (elisp-sandbox-testfn 1 2)))))
+    (should (eq 3 (elisp-sandbox-unsafe-env-testfn 1 2)))))
 
 (sandbox-test "sandbox-while wont allow infinite looping"
   (should-error
@@ -57,9 +57,13 @@
 (sandbox-test "sandbox-eval will eval defuns in a different namespace"
   ;; todo: make a test scenario that will actually pass
     (should (eq 3
-                (sandbox-eval
+
+
+                (elisp-sandbox-eval
                  '(progn (defun testfn (one two) (+ one two))
-                         (testfn 1 2))))))
+                         (testfn 1 2)))
+
+                )))
 
 (sandbox-test "sandbox forbids the user from executing the bad stuff"
   (with-mock2
@@ -73,9 +77,9 @@
 
 (sandbox-test "allows the user to execute the good stuff"
   (with-mock2
-    (defmock elisp-sandbox-not-sensitive ())
+    (defmock elisp-sandbox-unsafe-env-not-sensitive ())
     (eval (sandbox '(not-sensitive)))
-    (should (= 1 (el-spec:called-count 'elisp-sandbox-not-sensitive)))))
+    (should (= 1 (el-spec:called-count 'elisp-sandbox-unsafe-env-not-sensitive)))))
 
 (sandbox-test "an infinite loop condition cant allow looping, i guess"
   (should-error

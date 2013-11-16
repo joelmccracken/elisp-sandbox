@@ -227,10 +227,13 @@ etc, things that are not defined, but passed on here in any case."
 (defmacro elisp-sandbox-defun (fcn args &rest body)
   ;; the given fcn icould be a number or string, in which
   ;; case sandboxing won't touch it, so we need to override that case.
-  (let ((docp nil)
+  (let* ((docp nil)
+        (fcn-name (symbol-name fcn))
         (fcn (cond
-                      ((or (numberp fcn) (stringp fcn)) fcn)
-                      (t (intern (concat elisp-sandbox-prefix (symbol-name fcn)))))))
+              ((or (numberp fcn) (stringp fcn)) fcn)
+              ((equal 0 (string-match elisp-sandbox-prefix fcn-name))
+               fcn)
+              (t (intern (concat elisp-sandbox-prefix fcn-name))))))
     (unless
         (and (listp body)
              (> (length body) 0))
@@ -268,6 +271,8 @@ etc, things that are not defined, but passed on here in any case."
       (eval code-with-sit-for))
     `(quote ,fcn)))
 
+
+(defalias 'elisp-sandbox-unsafe-env-defun 'elisp-sandbox-defun)
 
 (defun elisp-sandbox-constant-object-p (object)
   "If the object is a symbol like nil or t, a symbol that cannot be
