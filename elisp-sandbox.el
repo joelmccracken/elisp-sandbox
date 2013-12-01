@@ -101,8 +101,16 @@ We WON'T do this by default since this could lead to exploits if you
 
 
 (defun elisp-sandbox-eval (form)
-  (setq elisp-sandbox-evaluation-output nil)
-  (eval `(progn ,(elisp-sandbox form))))
+  (let ((elisp-sandbox-evaluation-output '())
+        return-val
+        error-val)
+    (condition-case err
+        (setq return-val (eval `(progn ,(elisp-sandbox form))))
+      (error
+       (setq error-val (error-message-string err))))
+    `((:return . ,return-val)
+      (:*Messages* . ,elisp-sandbox-evaluation-output)
+      (:error . ,error-val))))
 
 
 ;; integrating erbot's sandbox functions
@@ -163,12 +171,10 @@ If it doesn't, prefix is added."
      ,args
      ,@body))
 
-(defvar elisp-sandbox-evaluation-output nil
-  "List that contains the output from the previous sandbox evaluation")
 
 (sandbox-defun message (msg)
-  (push msg elisp-sandbox-evaluation-output)
-  )
+  (push msg elisp-sandbox-evaluation-output))
+
 (defvar sandbox-max-list-length 100)
 
 (defmacro sandbox--check-args (&rest args)

@@ -35,7 +35,7 @@ that begin with that prefix. For example,
 (sandbox-defexample
  "a simple example that demonstrates expansion"
  (elisp-sandbox '(setq x 100))
- (elisp-sandbox-unsafe-env-setq elisp-sandbox-unsafe-env-x 100))
+ :return (elisp-sandbox-unsafe-env-setq elisp-sandbox-unsafe-env-x 100))
 
 (readme "
 
@@ -46,7 +46,7 @@ and:
 (sandbox-defexample
  "a second example that demonstrates expansion with a defun (a more complex form)"
  (elisp-sandbox '(defun nic-test-2 () 100))
- (elisp-sandbox-unsafe-env-defun elisp-sandbox-unsafe-env-nic-test-2 nil 100))
+ :return (elisp-sandbox-unsafe-env-defun elisp-sandbox-unsafe-env-nic-test-2 nil 100))
 
 
 (readme "
@@ -64,7 +64,46 @@ Example:
 (sandbox-defexample
  "a simple evaluation example"
  (elisp-sandbox-eval '(+ 1 2))
- 3)
+ :return 3)
+
+(readme "
+
+The {{{elisp-sandbox-eval}}} function returns an association list with a special form:
+
+
+{{{ '((:return . \"The scripts return value\")
+     (:*Messages* . (\"thing\"
+                     \"thang\"
+                     \"thung\"))
+     (:error . \"If evaluating the elisp  was an error, ))
+}}}
+
+It includes three keys: :return, :*Messages*, and :error, with contents described above.
+You can access their values in the normal association list way:
+
+")
+
+
+
+(sandbox-defexample
+ "demonstration accessing the return value of an evaluation"
+ (cdr (assoc :return (elisp-sandbox-eval '(+ 1 2 3))))
+ :return 6)
+
+
+(sandbox-defexample
+ "demonstration accessing an error from an evaluation"
+ (cdr (assoc :error (elisp-sandbox-eval '((calling-a-function-that-doesnt-exist)))))
+ :return 6)
+
+
+(sandbox-defexample
+ "demonstration accessing messages output from evaluation"
+ (cdr (assoc :*Messages* (elisp-sandbox-eval '(progn
+                                                (message "hello")
+                                                (message "world")))))
+ :return  '("hello"
+            "world"))
 
 
 (readme "
@@ -79,24 +118,44 @@ Any output is stored as a list of strings in the symbol:
 (sandbox-defexample
  "example showing output"
  (elisp-sandbox-eval '(message "Hello World!"))
- ("Hello World!")
-  ("Hello World!"))
+ :return ("Hello World!")
+ :messages ("Hello World!"))
 
 
 
 
 (readme "
 
-== Sandbox Internal API ==
+== Sandboxed Code Internal API ==
 
 Sandbox provides a number of functions and macros that are accessible to untrusted code.
 
 {{{defun}}} -- Defines a function specific to the sandbox environment.
 
+")
+
+
+
+(sandbox-defexample
+ "show defun in action"
+ (elisp-sandbox-eval
+  '(progn
+     (defun my-square (x)
+       (* x x))
+     (my-square 3)
+     ))
+ :return 9)
+
+
+
+
+(readme "
+
 {{{while}}} -- Basic looping. Has a maxium loop depth foncigurable with {{{ sandbox-while-max }}} .
 
-
 ")
+
+
 
 
 
@@ -110,7 +169,7 @@ Sandbox provides a number of functions and macros that are accessible to untrust
        (setq total (+ total counter))
        (setq counter  (+ 1 counter)))
      total))
- 45)
+ :return 45)
 
 
 (readme "
@@ -134,14 +193,14 @@ The maximum execution while depth can be configured:
            t))
        "A non-nil resuld would mean that the while finished and t was returned"
      "A nil result means an error happend, as expected!"))
- "A nil result means an error happend, as expected!")
+ :return "A nil result means an error happend, as expected!")
+
+
+
 
 
 
 (readme "
-
-
-
 
 {{{message}}} -- method for saving output.
 
@@ -149,9 +208,21 @@ The following are available as aliases of the standard functions:
 
 {{{setq}}}, {{{<}}}, {{{+}}}, {{{progn}}}, {{{let}}}, {{{ignore-errors}}}, {{{if}}}
 
+")
+
+
+
+(readme "
+
 == Sandbox Errors ==
 
 When code behaves badly, errors can be thrown. we gotta figure out how to handle these well.
+
+")
+
+
+
+(readme "
 
 == Future ==
 
@@ -190,14 +261,7 @@ Tests can also be run interactively... TODO document this
 Readme content is automatically generated from the file README-spec.el,
 in the same directory. Its examples are used as feature tests. Do not
 edit README.creole directly; instead, edit README-spec.el and regenerate
-README.creole.
+README.creole. This regeneration is done as part of the {{{test.sh}}} script.
 
 Each feature is covered more thoroughly in the specs/ directory.
 ")
-
-;; illustrating each feature from the readme
-;; examples match headers
-
-
-;; == How to use it ==
-

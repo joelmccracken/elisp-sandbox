@@ -56,15 +56,38 @@
     (insert elisp-sandbox-readme-text))
   (setq elisp-sandbox-readme-text ""))
 
-(defmacro sandbox-defexample (description raw expected &optional output-should-equal)
-  `(progn
-     (sandbox-test ,description
-       (let ((elisp-sandbox-evaluation-output nil))
-         (should (equal (eval ',raw)
-                        ',expected))
-         (should (equal elisp-sandbox-evaluation-output
-                        ',output-should-equal))))
-     (readme (format "
+(defmacro sandbox-defexample (description raw &rest expectations)
+  (let ((expected-return (cadr (member :return expectations)))
+        (expected-messages (cadr (member :*Messages* expectations)))
+        (expected-error (cadr (member :error expectations))))
+    `(progn
+       (let ((expected-return ',expected-return)
+             (expected-messages ',expected-messages)
+             (expected-error ',expected-error)
+             (raw ',raw))
+         (sandbox-test ,description
+           (let* ((evaluation-results (eval raw))
+
+                  (evaluated-return (cdr (assoc :return results)))
+                  (evaluated-messages (cdr (assoc :*Messages* results)))
+                  (evaluated-error (cdr (assoc :error results))))
+
+             (should (equal evaluated-return expected-return))
+             (should (equal evaluated-messages expected-messages))
+             (should (equal evaluated-error expected-error))))
+
+         (sandbox-defexample--readme-doc raw
+                                         expected-return
+                                         expected-messages
+                                         expected-error))
+       )))
+
+
+(defun sandbox-defexample--readme-doc (raw return messages error)
+  (let ((return-str (if return (format "return: %s \n" (pp return)) ""))
+        (messages-str (if return (format "messages: %s \n" (pp messages)) ""))
+        (error-str (if return (format "error: %s \n" (pp error)) "")))
+    (readme (format "
 {{{
 %s
 }}}
@@ -74,9 +97,10 @@
 {{{
 %s
 }}}
-" (pp ',raw) (pp ',expected)))))
-
-
+"
+                    (pp raw)
+                    (concat return-str messages-str error-str)
+))))
 
 
 
