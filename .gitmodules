@@ -1,6 +1,6 @@
 [submodule "vendor/el-spec"]
 	path = vendor/el-spec
-	url = git@github.com:joelmccracken/el-spec.git
+	url = https://github.com/joelmccracken/el-spec.git
 [submodule "vendor/test-double"]
 	path = vendor/test-double
-	url = git@github.com:joelmccracken/test-double.git
+	url = https://github.com/joelmccracken/test-double.git
